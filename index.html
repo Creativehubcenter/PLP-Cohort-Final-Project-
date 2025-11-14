@@ -1,60 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calm Companion — Mental Health Chatbot</title>
-   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
-    <header>
+    <header class="app-header">
       <h1>How are you feeling today?</h1>
       <p class="subtitle">Calm Companion — gentle check-ins & short exercises</p>
     </header>
 
-    <main>
-      <section class="mood-row">
-        <button class="mood" data-mood="happy">😊</button>
-        <button class="mood" data-mood="neutral">😐</button>
-        <button class="mood" data-mood="sad">😢</button>
-        <button class="mood" data-mood="angry">😠</button>
-        <button class="mood" data-mood="tired">😴</button>
+    <main class="card">
+      <section class="mood-row" aria-label="mood selection">
+        <button class="mood" data-mood="happy" title="Happy">😊</button>
+        <button class="mood" data-mood="neutral" title="Neutral">😐</button>
+        <button class="mood" data-mood="sad" title="Sad">😢</button>
+        <button class="mood" data-mood="angry" title="Angry">😠</button>
+        <button class="mood" data-mood="tired" title="Tired">😴</button>
       </section>
 
-      <section id="chatbox" class="chatbox hidden">
-        <div id="chatlog" class="chatlog"></div>
+      <section id="chatbox" class="chatbox hidden" aria-live="polite">
+        <div id="chatlog" class="chatlog" role="log" aria-atomic="false"></div>
+
+        <div id="typingIndicator" class="typing hidden" aria-hidden="true">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+
         <div class="input-area">
-          <input type="text" id="userInput" placeholder="Type your thoughts..." />
+          <input id="userInput" type="text" placeholder="Type your thoughts... (press Enter to send)" />
           <button id="sendBtn">Send</button>
         </div>
       </section>
 
-      <section class="controls hidden" id="controls">
+      <section id="controls" class="controls hidden" aria-hidden="true">
         <button id="btnBreath" class="pill">🫁 Breathing Exercise</button>
         <button id="btnMind" class="pill">🧠 Mind Exercise</button>
-        <button id="btnFeedback" class="pill">📝 Feedback</button>
+        <button id="btnHistory" class="pill">📈 Mood Summary</button>
+        <button id="btnFeedback" class="pill">📝 Give Feedback</button>
       </section>
 
-      <section class="journal hidden" id="journalSection">
+      <section id="journalSection" class="journal hidden" aria-hidden="true">
         <h2>Gratitude Journal</h2>
-        <textarea id="journalEntry" placeholder="What are you grateful for today?"></textarea>
+        <textarea id="journalEntry" placeholder="Write 1–3 things you're grateful for today..."></textarea>
         <div class="journal-row">
-          <button id="saveJournal" class="pill">Save Entry</button>
+          <button id="saveJournal" class="pill primary">Save Entry</button>
+          <button id="viewJournal" class="pill">View Entries</button>
         </div>
       </section>
-
-      <p class="app-footer">Built with care • This chatbot is not a substitute for professional help. If you're in crisis, contact local emergency services or a helpline.</p>
     </main>
 
-    <footer>
-      coded by <strong>Sea Phogojane</strong> • it is open source on 
-      <a href="https://github.com/Creativehubcenter/PLP-Cohort-Final-Project-.git">GitHub</a> 
-      and hosted on 
-      <a href="https://mental-health-check-inn.netlify.app/">Netlify</a>
+    <aside class="sidecard" aria-label="info">
+      <div id="affirmation" class="affirmation">Tap a mood to begin — you'll get a friendly response and a small exercise when needed.</div>
+      <div id="streak" class="streak">Streak: —</div>
+      <div id="moodStats" class="mood-stats">Recent: —</div>
+      <hr />
+      <div class="feedback-preview">
+        <strong>Recent feedback</strong>
+        <div id="feedbackPreview" class="feedback-preview-list">No feedback yet</div>
+        <button id="viewAllFeedback" class="pill" style="margin-top:10px">View All Feedback</button>
+      </div>
+    </aside>
+
+    <!-- Main Safety Footer -->
+    <footer class="app-footer">
+      <small>Built with care • This chatbot is not a substitute for professional help. If you're in crisis, contact local emergency services or a helpline.</small>
     </footer>
+
+    <!-- Your Custom Credit Footer (ADDED BELOW) -->
+    <footer class="credit-footer">
+      coded by <strong>Sea Phogojane</strong> • it is open source on  
+      <a href="https://github.com/Creativehubcenter/PLP-Cohort-Final-Project-.git" target="_blank">GitHub</a>
+      and hosted on 
+      <a href="https://mental-health-check-inn.netlify.app/" target="_blank">Netlify</a>
+    </footer>
+
   </div>
+
+  <!-- BREATH MODAL -->
+  <div id="breathModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" data-close>&times;</button>
+      <h3>Breathing Exercise</h3>
+      <p class="muted">Follow the circle. Breathe in → hold → breathe out. (2 minutes recommended)</p>
+      <div id="breathCircle" class="breath-circle"></div>
+      <div id="breathText" class="breath-text">Ready?</div>
+      <div class="modal-row">
+        <button id="startBreath" class="pill primary">Start</button>
+        <button data-close class="pill">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIND MODAL -->
+  <div id="mindModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" data-close>&times;</button>
+      <h3>Mind Exercise — 1 Minute Focus</h3>
+      <p class="muted">A short guided focus to reset attention. Follow the prompts and the countdown.</p>
+      <div id="mindInstruction" class="mind-instruction">When ready, press Start.</div>
+      <div id="mindTimer" class="mind-timer">00:60</div>
+      <div class="modal-row">
+        <button id="startMind" class="pill primary">Start</button>
+        <button data-close class="pill">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY MODAL -->
+  <div id="summaryModal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" data-close>&times;</button>
+      <h3>Weekly Mood Summary</h3>
+      <div id="summaryContent" class="summary-content"></div>
+      <div class="modal-row">
+        <button data-close class="pill">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOURNAL MODAL -->
+  <div id="journalModal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" data-close>&times;</button>
+      <h3>Saved Gratitude Entries</h3>
+      <div id="journalList" class="journal-list"></div>
+      <div class="modal-row">
+        <button id="clearJournal" class="pill">Clear All</button>
+        <button data-close class="pill">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK MODAL -->
+  <div id="feedbackModal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" data-close>&times;</button>
+      <h3>Give Feedback</h3>
+      <p class="muted">Rate your experience and share any thoughts (optional).</p>
+
+      <div class="stars" id="starRow">
+        <button class="star" data-rate="1">☆</button>
+        <button class="star" data-rate="2">☆</button>
+        <button class="star" data-rate="3">☆</button>
+        <button class="star" data-rate="4">☆</button>
+        <button class="star" data-rate="5">☆</button>
+      </div>
+
+      <textarea id="feedbackText" placeholder="How did this chat make you feel?"></textarea>
+
+      <div class="modal-row">
+        <button id="submitFeedback" class="pill primary">Submit Feedback</button>
+        <button data-close class="pill">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK LIST MODAL -->
+  <div id="feedbackListModal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" data-close>&times;</button>
+      <h3>All Feedback</h3>
+      <div id="allFeedbackList" class="feedback-list"></div>
+      <div class="modal-row">
+        <button id="clearFeedback" class="pill">Clear All</button>
+        <button data-close class="pill">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="ding" src="" preload="auto"></audio>
 
   <script src="index.js"></script>
 </body>
 </html>
+
